@@ -84,13 +84,13 @@
                     <table class="w-full text-sm text-left">
                         <thead class="text-xs text-slate-600 uppercase bg-slate-100/50">
                             <tr>
-                                <th class="px-4 py-3 font-semibold w-1/6">公司</th>
-                                <th class="px-4 py-3 font-semibold w-1/12">個編帳號</th>
-                                <th class="px-4 py-3 font-semibold w-1/6">產業</th>
-                                <th class="px-4 py-3 font-semibold w-1/6">職務</th>
-                                <th class="px-4 py-3 font-semibold w-1/6">職位</th>
-                                <th class="px-4 py-3 font-semibold w-1/6">日期</th>
-                                <th class="px-4 py-3 font-semibold w-16 text-center">操作</th>
+                                <th class="px-4 py-3 font-semibold w-1/6 whitespace-nowrap">公司</th>
+                                <th class="px-4 py-3 font-semibold w-1/12 whitespace-nowrap">個編帳號</th>
+                                <th class="px-4 py-3 font-semibold w-1/6 whitespace-nowrap">產業</th>
+                                <th class="px-4 py-3 font-semibold w-1/6 whitespace-nowrap">職務</th>
+                                <th class="px-4 py-3 font-semibold w-1/6 whitespace-nowrap">職位</th>
+                                <th class="px-4 py-3 font-semibold w-1/6 whitespace-nowrap">日期</th>
+                                <th class="px-4 py-3 font-semibold w-16 text-center whitespace-nowrap">操作</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody" class="divide-y divide-slate-100"></tbody>
@@ -161,14 +161,14 @@
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                 <!-- 公司統計表格 -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden self-start">
-                    <div class="bg-blue-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center">公司統計</div>
+                    <div class="bg-blue-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center whitespace-nowrap">公司統計</div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left">
                             <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100">
                                 <tr>
-                                    <th class="px-4 py-3">項目</th>
-                                    <th class="px-4 py-3 text-right">筆數</th>
-                                    <th class="px-4 py-3 text-right">佔比</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">項目</th>
+                                    <th class="px-4 py-3 text-right whitespace-nowrap">筆數</th>
+                                    <th class="px-4 py-3 text-right whitespace-nowrap">佔比</th>
                                 </tr>
                             </thead>
                             <tbody id="companyStatsTable" class="divide-y divide-slate-100"></tbody>
@@ -178,14 +178,14 @@
 
                 <!-- 產業統計表格 -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden self-start">
-                    <div class="bg-emerald-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center">產業統計</div>
+                    <div class="bg-emerald-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center whitespace-nowrap">產業統計</div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left">
                             <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100">
                                 <tr>
-                                    <th class="px-4 py-3">項目</th>
-                                    <th class="px-4 py-3 text-right">筆數</th>
-                                    <th class="px-4 py-3 text-right">佔比</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">項目</th>
+                                    <th class="px-4 py-3 text-right whitespace-nowrap">筆數</th>
+                                    <th class="px-4 py-3 text-right whitespace-nowrap">佔比</th>
                                 </tr>
                             </thead>
                             <tbody id="industryStatsTable" class="divide-y divide-slate-100"></tbody>
@@ -195,14 +195,14 @@
 
                 <!-- 職位統計表格 -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden self-start">
-                    <div class="bg-amber-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center">職位統計</div>
+                    <div class="bg-amber-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center whitespace-nowrap">職位統計</div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left">
                             <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100">
                                 <tr>
-                                    <th class="px-4 py-3">項目</th>
-                                    <th class="px-4 py-3 text-right">筆數</th>
-                                    <th class="px-4 py-3 text-right">佔比</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">項目</th>
+                                    <th class="px-4 py-3 text-right whitespace-nowrap">筆數</th>
+                                    <th class="px-4 py-3 text-right whitespace-nowrap">佔比</th>
                                 </tr>
                             </thead>
                             <tbody id="positionStatsTable" class="divide-y divide-slate-100"></tbody>
@@ -212,14 +212,14 @@
 
                 <!-- 職務統計表格 -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden self-start">
-                    <div class="bg-cyan-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center">職務統計</div>
+                    <div class="bg-cyan-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center whitespace-nowrap">職務統計</div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm text-left">
                             <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100">
                                 <tr>
-                                    <th class="px-4 py-3">項目</th>
-                                    <th class="px-4 py-3 text-right">筆數</th>
-                                    <th class="px-4 py-3 text-right">佔比</th>
+                                    <th class="px-4 py-3 whitespace-nowrap">項目</th>
+                                    <th class="px-4 py-3 text-right whitespace-nowrap">筆數</th>
+                                    <th class="px-4 py-3 text-right whitespace-nowrap">佔比</th>
                                 </tr>
                             </thead>
                             <tbody id="dutyStatsTable" class="divide-y divide-slate-100"></tbody>
@@ -306,13 +306,13 @@
                         <input type="text" 
                                value="${row[field]}" 
                                oninput="updateData(${index}, '${field}', this.value)"
-                               class="w-full px-2 py-1.5 bg-transparent border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded transition-all outline-none text-slate-700">
+                               class="w-full px-2 py-1.5 bg-transparent border border-transparent hover:border-slate-300 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 rounded transition-all outline-none text-slate-700 whitespace-nowrap">
                     `;
                     tr.appendChild(td);
                 });
 
                 const tdAction = document.createElement('td');
-                tdAction.className = "p-2 text-center";
+                tdAction.className = "p-2 text-center whitespace-nowrap";
                 tdAction.innerHTML = `
                     <button onclick="deleteRow(${index})" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100" title="刪除此列">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -553,9 +553,9 @@
                 const percentage = ((count / totalCount) * 100).toFixed(1);
                 html += `
                     <tr class="hover:bg-slate-50 transition-colors">
-                        <td class="px-4 py-3 text-slate-700 break-words">${key}</td>
-                        <td class="px-4 py-3 text-slate-700 text-right font-medium">${count}</td>
-                        <td class="px-4 py-3 text-slate-500 text-right">${percentage}%</td>
+                        <td class="px-4 py-3 text-slate-700 whitespace-nowrap">${key}</td>
+                        <td class="px-4 py-3 text-slate-700 text-right font-medium whitespace-nowrap">${count}</td>
+                        <td class="px-4 py-3 text-slate-500 text-right whitespace-nowrap">${percentage}%</td>
                     </tr>
                 `;
             });
