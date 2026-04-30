@@ -10,6 +10,10 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- 引入 Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- 引入 Excel 匯出與截圖相關套件 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
@@ -24,14 +28,20 @@
     <div class="max-w-7xl mx-auto space-y-6">
         
         <!-- 頁首標題 -->
-        <header class="flex items-center space-x-3 mb-4">
-            <div class="p-3 bg-blue-600 rounded-lg text-white">
-                <i data-lucide="bar-chart-2"></i>
+        <header class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
+            <div class="flex items-center space-x-3">
+                <div class="p-3 bg-blue-600 rounded-lg text-white">
+                    <i data-lucide="bar-chart-2"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">企業數據視覺化儀表板</h1>
+                    <p class="text-sm text-slate-500">輸入或貼上表格資料，自動生成圖表與統計數據</p>
+                </div>
             </div>
-            <div>
-                <h1 class="text-2xl font-bold text-slate-900">企業數據視覺化儀表板</h1>
-                <p class="text-sm text-slate-500">輸入或貼上表格資料，自動生成圖表與統計數據</p>
-            </div>
+            <!-- 匯出 Excel 按鈕 -->
+            <button id="exportBtn" onclick="exportToExcel()" class="px-4 py-2.5 bg-green-600 text-white rounded-lg flex items-center gap-2 shadow-sm hover:bg-green-700 transition-colors whitespace-nowrap font-medium text-sm">
+                <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> 匯出整份 Excel 報表
+            </button>
         </header>
 
         <!-- 分頁導覽列 -->
@@ -56,7 +66,10 @@
                     <h2 class="text-lg font-semibold flex items-center gap-2">
                         資料列表
                     </h2>
-                    <div class="flex gap-2">
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="copyInputTable()" class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-1 shadow-sm">
+                            <i data-lucide="copy" class="w-4 h-4"></i> 複製表格
+                        </button>
                         <button onclick="togglePasteArea()" class="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center gap-1">
                             <i data-lucide="clipboard-paste" class="w-4 h-4"></i> 從 Excel 貼上
                         </button>
@@ -516,17 +529,19 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        // 隱藏原生的 Canvas 圖例，改透過下方的 HTML 自訂圖例生成
                         legend: { 
                             display: false 
                         },
                         tooltip: {
                             callbacks: {
+                                // 隱藏原本的預設標題 (避免文字重複)
+                                title: function() { return null; },
+                                // 客製化顯示標籤格式為: 項目名稱: ?筆 (??%)
                                 label: function(context) {
                                     const total = context.chart._metasets[context.datasetIndex].total;
                                     const value = context.raw;
                                     const percentage = ((value / total) * 100).toFixed(1);
-                                    return `${context.label}: ${value} 筆 (${percentage}%)`;
+                                    return `${context.label}: ${value}筆 (${percentage}%)`;
                                 }
                             }
                         }
@@ -541,14 +556,11 @@
                         container.innerHTML = '';
                         
                         const ul = document.createElement('ul');
-                        // 使用 CSS Grid 排版:
-                        // auto-fit + minmax 確保不管是幾列，只要換行就會像表格一樣「上下完美對齊」
                         ul.className = 'grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-x-2 gap-y-2.5 w-full text-xs text-slate-600 px-1';
 
                         const items = chart.options.plugins.legend.labels.generateLabels(chart);
                         items.forEach(item => {
                             const li = document.createElement('li');
-                            // flex items-start: 確保當文字太長變成兩行時，第二行文字會跟第一行文字「完美對齊」，不會跑去對齊色塊
                             li.className = 'flex items-start gap-1.5 cursor-pointer transition-all hover:opacity-80';
                             li.onclick = () => {
                                 chart.toggleDataVisibility(item.index);
@@ -640,7 +652,6 @@
                 return;
             }
 
-            // 依數量由大到小排序
             const sortedData = Object.entries(dataObj).sort((a, b) => b[1] - a[1]);
 
             let html = '';
@@ -657,16 +668,12 @@
             container.innerHTML = html;
         }
 
-        // 統一更新流程
         function updateAllData() {
             const validData = tableData.filter(row => 
                 row.company.trim() !== '' || row.industry.trim() !== '' || row.position.trim() !== '' || row.date.trim() !== ''
             );
 
-            // 1. 更新圖表
             updateCharts(validData);
-            
-            // 2. 更新詳細數據表格
             renderStatsTables(validData);
         }
 
@@ -677,14 +684,12 @@
                 );
             }
 
-            // 原始計數
             const companyCounts = aggregateData(validData, 'company');
             const industryCounts = aggregateData(validData, 'industry');
             const dutyCounts = aggregateData(validData, 'c');
             const positionCounts = aggregateData(validData, 'position');
             const dateCounts = aggregateData(validData, 'date');
 
-            // 處理低於 2% 的項目，並進行排序
             const companyPieData = processPieDataForUnder2Percent(companyCounts);
             const industryPieData = processPieDataForUnder2Percent(industryCounts);
             const dutyPieData = processPieDataForUnder2Percent(dutyCounts);
@@ -698,21 +703,12 @@
         }
 
         // --- 複製表格功能 ---
-        function copyTable(tableId) {
-            const table = document.getElementById(tableId);
-            let textToCopy = '';
-            
-            // 取得所有列 (包含 thead 和 tbody)
-            const rows = table.querySelectorAll('tr');
-            
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('th, td');
-                const rowData = Array.from(cells).map(cell => cell.innerText.trim());
-                // 以 Tab 分隔，方便貼上 Excel
-                textToCopy += rowData.join('\t') + '\n';
+        function copyInputTable() {
+            let textToCopy = '公司\t個編帳號\t產業\t職務\t職位\t日期\n';
+            tableData.forEach(row => {
+                textToCopy += `${row.company}\t${row.a}\t${row.industry}\t${row.c}\t${row.position}\t${row.date}\n`;
             });
-
-            // 執行複製到剪貼簿 (相容性較佳的寫法)
+            
             const textArea = document.createElement("textarea");
             textArea.value = textToCopy;
             document.body.appendChild(textArea);
@@ -722,14 +718,36 @@
                 document.execCommand('copy');
                 showToast();
             } catch (err) {
-                console.error('複製失敗', err);
                 alert('複製失敗，您的瀏覽器可能不支援此功能。');
             }
-            
             document.body.removeChild(textArea);
         }
 
-        // 顯示複製成功提示
+        function copyTable(tableId) {
+            const table = document.getElementById(tableId);
+            let textToCopy = '';
+            const rows = table.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('th, td');
+                const rowData = Array.from(cells).map(cell => cell.innerText.trim());
+                textToCopy += rowData.join('\t') + '\n';
+            });
+
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                alert('複製失敗，您的瀏覽器可能不支援此功能。');
+            }
+            document.body.removeChild(textArea);
+        }
+
         function showToast() {
             const toast = document.getElementById('copyToast');
             toast.classList.remove('translate-y-20', 'opacity-0');
@@ -741,7 +759,127 @@
             }, 2500);
         }
 
-        // 頁面載入初始化
+        // --- 匯出 Excel 功能 ---
+        async function exportToExcel() {
+            const btn = document.getElementById('exportBtn');
+            const originalBtnContent = btn.innerHTML;
+            
+            try {
+                // 更新按鈕狀態
+                btn.innerHTML = '<i data-lucide="loader" class="w-4 h-4 animate-spin"></i> 報表生成中...';
+                lucide.createIcons();
+                btn.disabled = true;
+
+                const wb = new ExcelJS.Workbook();
+                wb.creator = '企業數據視覺化儀表板';
+                wb.created = new Date();
+
+                // === Sheet 1: 資料輸入 ===
+                const ws1 = wb.addWorksheet('資料輸入');
+                ws1.columns = [
+                    { header: '公司', key: 'company', width: 25 },
+                    { header: '個編帳號', key: 'a', width: 15 },
+                    { header: '產業', key: 'industry', width: 20 },
+                    { header: '職務', key: 'c', width: 20 },
+                    { header: '職位', key: 'position', width: 20 },
+                    { header: '日期', key: 'date', width: 15 }
+                ];
+                ws1.getRow(1).font = { bold: true };
+                tableData.forEach(row => {
+                    ws1.addRow(row);
+                });
+
+                // === Sheet 2: 圖表分析 ===
+                const ws2 = wb.addWorksheet('圖表分析');
+                
+                // 為了讓 html2canvas 能順利截圖，先切換到圖表頁面
+                const activeTabBtn = document.querySelector('nav button.border-blue-500').id;
+                if (activeTabBtn !== 'btn-tab-charts') {
+                    switchTab('charts');
+                    // 稍微等待 DOM 渲染與動畫
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
+
+                const chartsTab = document.getElementById('tab-charts');
+                
+                // 執行畫面截圖 (使用淡色背景確保截圖沒有透明區塊)
+                const canvas = await html2canvas(chartsTab, { 
+                    scale: 2, 
+                    backgroundColor: '#f8fafc',
+                    logging: false
+                });
+                
+                const imgData = canvas.toDataURL('image/png');
+                
+                // 將圖表影像加入工作簿
+                const imageId = wb.addImage({
+                    base64: imgData,
+                    extension: 'png',
+                });
+                
+                // 設定圖片在 Excel 中的尺寸與位置
+                ws2.addImage(imageId, {
+                    tl: { col: 1, row: 1 }, // 放於 B2 位置 (索引為 1,1)
+                    ext: { width: canvas.width / 2, height: canvas.height / 2 }
+                });
+
+                // 截圖完畢切回原本的分頁
+                if (activeTabBtn !== 'btn-tab-charts') {
+                    switchTab(activeTabBtn.replace('btn-tab-', ''));
+                }
+
+                // === Sheet 3: 詳細數據 ===
+                const ws3 = wb.addWorksheet('詳細數據');
+                ws3.getColumn(1).width = 30;
+                ws3.getColumn(2).width = 12;
+                ws3.getColumn(3).width = 12;
+
+                const validData = tableData.filter(row => row.company.trim() !== '' || row.industry.trim() !== '' || row.position.trim() !== '' || row.date.trim() !== '');
+                const total = validData.length;
+
+                // 建立統計表格的輔助函式
+                const addStatBlock = (title, key) => {
+                    const titleRow = ws3.addRow([title]);
+                    titleRow.font = { bold: true, size: 14 };
+                    
+                    const headerRow = ws3.addRow(['項目', '筆數', '佔比']);
+                    headerRow.font = { bold: true };
+                    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF3F4F6' } };
+
+                    if (total === 0) {
+                        ws3.addRow(['無資料', '', '']);
+                    } else {
+                        const counts = aggregateData(validData, key);
+                        const sortedData = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+                        
+                        sortedData.forEach(([k, v]) => {
+                            const percentage = ((v / total) * 100).toFixed(1) + '%';
+                            ws3.addRow([k, v, percentage]);
+                        });
+                    }
+                    ws3.addRow([]); // 加入空行隔開表格
+                };
+
+                addStatBlock('【公司統計】', 'company');
+                addStatBlock('【產業統計】', 'industry');
+                addStatBlock('【職位統計】', 'position');
+                addStatBlock('【職務統計】', 'c');
+
+                // 輸出並下載 Excel 檔案
+                const buffer = await wb.xlsx.writeBuffer();
+                saveAs(new Blob([buffer]), '企業數據視覺化報表.xlsx');
+
+            } catch (error) {
+                console.error('Excel 匯出發生錯誤:', error);
+                alert('匯出失敗，請確認您的瀏覽器是否阻擋了下載操作。');
+            } finally {
+                // 還原按鈕狀態
+                btn.innerHTML = originalBtnContent;
+                lucide.createIcons();
+                btn.disabled = false;
+            }
+        }
+
         window.onload = () => {
             renderTable();
         };
