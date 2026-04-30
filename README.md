@@ -124,29 +124,38 @@
                     <i data-lucide="pie-chart" class="w-5 h-5 text-indigo-500"></i> 佔比分析 <span class="text-sm font-normal text-slate-400 ml-2">(佔比低於 2% 之項目已自動歸類為「其他」)</span>
                 </h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- 公司佔比 -->
                     <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
                         <h3 class="text-sm font-bold text-slate-600 mb-4 w-full text-center">公司佔比</h3>
-                        <div class="relative w-full aspect-square max-w-[280px]">
+                        <div class="relative w-full h-[200px]">
                             <canvas id="companyChart"></canvas>
                         </div>
+                        <!-- 自訂對齊圖例的容器 -->
+                        <div id="companyChartLegend" class="w-full mt-4 flex-1"></div>
                     </div>
+                    <!-- 產業佔比 -->
                     <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
                         <h3 class="text-sm font-bold text-slate-600 mb-4 w-full text-center">產業佔比</h3>
-                        <div class="relative w-full aspect-square max-w-[280px]">
+                        <div class="relative w-full h-[200px]">
                             <canvas id="industryChart"></canvas>
                         </div>
+                        <div id="industryChartLegend" class="w-full mt-4 flex-1"></div>
                     </div>
+                    <!-- 職務佔比 -->
                     <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
                         <h3 class="text-sm font-bold text-slate-600 mb-4 w-full text-center">職務佔比</h3>
-                        <div class="relative w-full aspect-square max-w-[280px]">
+                        <div class="relative w-full h-[200px]">
                             <canvas id="dutyChart"></canvas>
                         </div>
+                        <div id="dutyChartLegend" class="w-full mt-4 flex-1"></div>
                     </div>
+                    <!-- 職位佔比 -->
                     <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
                         <h3 class="text-sm font-bold text-slate-600 mb-4 w-full text-center">職位佔比</h3>
-                        <div class="relative w-full aspect-square max-w-[280px]">
+                        <div class="relative w-full h-[200px]">
                             <canvas id="positionChart"></canvas>
                         </div>
+                        <div id="positionChartLegend" class="w-full mt-4 flex-1"></div>
                     </div>
                 </div>
             </section>
@@ -480,7 +489,15 @@
             if (chartInstances[chartKey]) chartInstances[chartKey].destroy();
 
             if (labels.length === 0) {
-                chartInstances[chartKey] = new Chart(ctx, { type: 'pie', data: { labels: ['無資料'], datasets: [{ data: [1], backgroundColor: ['#e2e8f0'] }] } });
+                chartInstances[chartKey] = new Chart(ctx, { 
+                    type: 'pie', 
+                    data: { labels: ['無資料'], datasets: [{ data: [1], backgroundColor: ['#e2e8f0'] }] },
+                    options: { plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+                });
+                
+                const legendContainer = document.getElementById(chartId + 'Legend');
+                if (legendContainer) legendContainer.innerHTML = '<div class="text-center text-slate-400 text-xs py-2">無資料</div>';
+                
                 return;
             }
 
@@ -499,7 +516,10 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'bottom', labels: { padding: 15 } },
+                        // 隱藏原生的 Canvas 圖例，改透過下方的 HTML 自訂圖例生成
+                        legend: { 
+                            display: false 
+                        },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
@@ -511,7 +531,51 @@
                             }
                         }
                     }
-                }
+                },
+                // 自訂 HTML 圖例外掛程式
+                plugins: [{
+                    id: 'customHtmlLegend',
+                    afterUpdate: function(chart) {
+                        const container = document.getElementById(chart.canvas.id + 'Legend');
+                        if (!container) return;
+                        container.innerHTML = '';
+                        
+                        const ul = document.createElement('ul');
+                        // 使用 CSS Grid 排版:
+                        // auto-fit + minmax 確保不管是幾列，只要換行就會像表格一樣「上下完美對齊」
+                        ul.className = 'grid grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-x-2 gap-y-2.5 w-full text-xs text-slate-600 px-1';
+
+                        const items = chart.options.plugins.legend.labels.generateLabels(chart);
+                        items.forEach(item => {
+                            const li = document.createElement('li');
+                            // flex items-start: 確保當文字太長變成兩行時，第二行文字會跟第一行文字「完美對齊」，不會跑去對齊色塊
+                            li.className = 'flex items-start gap-1.5 cursor-pointer transition-all hover:opacity-80';
+                            li.onclick = () => {
+                                chart.toggleDataVisibility(item.index);
+                                chart.update();
+                            };
+                            
+                            if (item.hidden) {
+                                li.classList.add('opacity-40', 'line-through');
+                            }
+
+                            const box = document.createElement('span');
+                            box.className = 'w-3 h-3 shrink-0 rounded-[2px] mt-[2px] block border';
+                            box.style.backgroundColor = item.fillStyle;
+                            box.style.borderColor = item.strokeStyle || '#ffffff';
+                            box.style.borderWidth = (item.lineWidth || 1) + 'px';
+
+                            const text = document.createElement('span');
+                            text.className = 'text-left leading-snug break-words flex-1';
+                            text.textContent = item.text;
+
+                            li.appendChild(box);
+                            li.appendChild(text);
+                            ul.appendChild(li);
+                        });
+                        container.appendChild(ul);
+                    }
+                }]
             });
         }
 
