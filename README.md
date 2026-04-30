@@ -526,12 +526,18 @@
                             callbacks: {
                                 // 隱藏原本的預設標題 (避免文字重複)
                                 title: function() { return null; },
-                                // 客製化顯示標籤格式為: 項目名稱: ?筆 (??%)
+                                // 客製化顯示標籤格式為兩行:
+                                // 第一行: 項目名稱:
+                                // 第二行: ?筆 (??%)
                                 label: function(context) {
                                     const total = context.chart._metasets[context.datasetIndex].total;
                                     const value = context.raw;
                                     const percentage = ((value / total) * 100).toFixed(1);
-                                    return `${context.label}: ${value}筆 (${percentage}%)`;
+                                    // 透過回傳陣列，讓 Chart.js 在 Tooltip 中換行顯示
+                                    return [
+                                        `${context.label}:`,
+                                        `${value}筆 (${percentage}%)`
+                                    ];
                                 }
                             }
                         }
