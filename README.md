@@ -162,9 +162,14 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- 公司統計表格 -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden self-start">
-                    <div class="bg-blue-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center whitespace-nowrap">公司統計</div>
+                    <div class="bg-blue-50/50 p-3 border-b border-slate-200 flex justify-between items-center">
+                        <div class="font-semibold text-slate-800 whitespace-nowrap">公司統計</div>
+                        <button onclick="copyTable('companyTable')" class="text-slate-500 hover:text-blue-600 flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-white/50 hover:bg-white transition-colors border border-transparent hover:border-slate-300" title="複製表格內容">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> 複製
+                        </button>
+                    </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
+                        <table id="companyTable" class="w-full text-sm text-left">
                             <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100">
                                 <tr>
                                     <th class="px-4 py-3 whitespace-nowrap">項目</th>
@@ -179,9 +184,14 @@
 
                 <!-- 產業統計表格 -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden self-start">
-                    <div class="bg-emerald-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center whitespace-nowrap">產業統計</div>
+                    <div class="bg-emerald-50/50 p-3 border-b border-slate-200 flex justify-between items-center">
+                        <div class="font-semibold text-slate-800 whitespace-nowrap">產業統計</div>
+                        <button onclick="copyTable('industryTable')" class="text-slate-500 hover:text-emerald-600 flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-white/50 hover:bg-white transition-colors border border-transparent hover:border-slate-300" title="複製表格內容">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> 複製
+                        </button>
+                    </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
+                        <table id="industryTable" class="w-full text-sm text-left">
                             <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100">
                                 <tr>
                                     <th class="px-4 py-3 whitespace-nowrap">項目</th>
@@ -199,9 +209,14 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- 職位統計表格 -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden self-start">
-                    <div class="bg-amber-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center whitespace-nowrap">職位統計</div>
+                    <div class="bg-amber-50/50 p-3 border-b border-slate-200 flex justify-between items-center">
+                        <div class="font-semibold text-slate-800 whitespace-nowrap">職位統計</div>
+                        <button onclick="copyTable('positionTable')" class="text-slate-500 hover:text-amber-600 flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-white/50 hover:bg-white transition-colors border border-transparent hover:border-slate-300" title="複製表格內容">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> 複製
+                        </button>
+                    </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
+                        <table id="positionTable" class="w-full text-sm text-left">
                             <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100">
                                 <tr>
                                     <th class="px-4 py-3 whitespace-nowrap">項目</th>
@@ -216,9 +231,14 @@
 
                 <!-- 職務統計表格 -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden self-start">
-                    <div class="bg-cyan-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center whitespace-nowrap">職務統計</div>
+                    <div class="bg-cyan-50/50 p-3 border-b border-slate-200 flex justify-between items-center">
+                        <div class="font-semibold text-slate-800 whitespace-nowrap">職務統計</div>
+                        <button onclick="copyTable('dutyTable')" class="text-slate-500 hover:text-cyan-600 flex items-center gap-1 text-xs font-medium px-2 py-1 rounded bg-white/50 hover:bg-white transition-colors border border-transparent hover:border-slate-300" title="複製表格內容">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> 複製
+                        </button>
+                    </div>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
+                        <table id="dutyTable" class="w-full text-sm text-left">
                             <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100">
                                 <tr>
                                     <th class="px-4 py-3 whitespace-nowrap">項目</th>
@@ -234,6 +254,12 @@
 
         </div>
 
+    </div>
+
+    <!-- 複製成功提示區塊 (預設隱藏) -->
+    <div id="copyToast" class="fixed bottom-4 right-4 bg-slate-800 text-white px-4 py-2 rounded shadow-lg flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none z-50">
+        <i data-lucide="check-circle" class="w-4 h-4 text-green-400"></i>
+        <span class="text-sm">表格已複製到剪貼簿</span>
     </div>
 
     <script>
@@ -605,6 +631,50 @@
             drawPieChart('industryChart', industryPieData, 'industry');
             drawPieChart('dutyChart', dutyPieData, 'duty');
             drawPieChart('positionChart', positionPieData, 'position');
+        }
+
+        // --- 複製表格功能 ---
+        function copyTable(tableId) {
+            const table = document.getElementById(tableId);
+            let textToCopy = '';
+            
+            // 取得所有列 (包含 thead 和 tbody)
+            const rows = table.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('th, td');
+                const rowData = Array.from(cells).map(cell => cell.innerText.trim());
+                // 以 Tab 分隔，方便貼上 Excel
+                textToCopy += rowData.join('\t') + '\n';
+            });
+
+            // 執行複製到剪貼簿 (相容性較佳的寫法)
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            document.body.appendChild(textArea);
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (err) {
+                console.error('複製失敗', err);
+                alert('複製失敗，您的瀏覽器可能不支援此功能。');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+
+        // 顯示複製成功提示
+        function showToast() {
+            const toast = document.getElementById('copyToast');
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 2500);
         }
 
         // 頁面載入初始化
