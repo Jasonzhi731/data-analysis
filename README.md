@@ -72,7 +72,7 @@
                 <!-- 貼上資料區塊 -->
                 <div id="pasteAreaContainer" class="hidden p-6 border-b border-slate-100 bg-blue-50/30">
                     <label class="block text-sm font-medium text-slate-700 mb-2">請將 Excel 或 CSV 資料貼在下方文字方塊中 (以 Tab 分隔)：</label>
-                    <textarea id="pasteInput" rows="4" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-mono" placeholder="公司&#9;a&#9;產業&#9;c&#9;職位&#9;日期..."></textarea>
+                    <textarea id="pasteInput" rows="4" class="w-full p-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm font-mono" placeholder="公司&#9;個編帳號&#9;產業&#9;職務&#9;職位&#9;日期..."></textarea>
                     <div class="mt-3 flex justify-end gap-2">
                         <button onclick="togglePasteArea()" class="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">取消</button>
                         <button onclick="processPastedData()" class="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors">載入資料</button>
@@ -85,9 +85,9 @@
                         <thead class="text-xs text-slate-600 uppercase bg-slate-100/50">
                             <tr>
                                 <th class="px-4 py-3 font-semibold w-1/6">公司</th>
-                                <th class="px-4 py-3 font-semibold w-1/12">a</th>
+                                <th class="px-4 py-3 font-semibold w-1/12">個編帳號</th>
                                 <th class="px-4 py-3 font-semibold w-1/6">產業</th>
-                                <th class="px-4 py-3 font-semibold w-1/6">c</th>
+                                <th class="px-4 py-3 font-semibold w-1/6">職務</th>
                                 <th class="px-4 py-3 font-semibold w-1/6">職位</th>
                                 <th class="px-4 py-3 font-semibold w-1/6">日期</th>
                                 <th class="px-4 py-3 font-semibold w-16 text-center">操作</th>
@@ -123,7 +123,7 @@
                 <h2 class="text-lg font-semibold flex items-center gap-2 px-1 mb-4 pt-4">
                     <i data-lucide="pie-chart" class="w-5 h-5 text-indigo-500"></i> 佔比分析 <span class="text-sm font-normal text-slate-400 ml-2">(佔比低於 2% 之項目已自動歸類為「其他」)</span>
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
                         <h3 class="text-sm font-bold text-slate-600 mb-4 w-full text-center">公司佔比</h3>
                         <div class="relative w-full aspect-square max-w-[280px]">
@@ -134,6 +134,12 @@
                         <h3 class="text-sm font-bold text-slate-600 mb-4 w-full text-center">產業佔比</h3>
                         <div class="relative w-full aspect-square max-w-[280px]">
                             <canvas id="industryChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
+                        <h3 class="text-sm font-bold text-slate-600 mb-4 w-full text-center">職務佔比</h3>
+                        <div class="relative w-full aspect-square max-w-[280px]">
+                            <canvas id="dutyChart"></canvas>
                         </div>
                     </div>
                     <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
@@ -152,7 +158,7 @@
                 <i data-lucide="list-ordered" class="w-5 h-5 text-purple-500"></i> 詳細統計數據報表
             </h2>
             
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                 <!-- 公司統計表格 -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden self-start">
                     <div class="bg-blue-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center">公司統計</div>
@@ -203,6 +209,23 @@
                         </table>
                     </div>
                 </div>
+
+                <!-- 職務統計表格 -->
+                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden self-start">
+                    <div class="bg-cyan-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center">職務統計</div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-slate-50 text-slate-500 text-xs uppercase border-b border-slate-100">
+                                <tr>
+                                    <th class="px-4 py-3">項目</th>
+                                    <th class="px-4 py-3 text-right">筆數</th>
+                                    <th class="px-4 py-3 text-right">佔比</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dutyStatsTable" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -221,7 +244,7 @@
 
         let tableData = JSON.parse(JSON.stringify(initialData));
         
-        let chartInstances = { company: null, industry: null, position: null, date: null };
+        let chartInstances = { company: null, industry: null, position: null, duty: null, date: null };
 
         const chartColors = [
             '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
@@ -380,12 +403,12 @@
             }, {});
         }
 
-        // 將小於 2% 的資料合併為「其他」
+        // 將小於 2% 的資料合併為「其他」，並依據數值由大到小排序
         function processPieDataForUnder2Percent(countsObj) {
             const total = Object.values(countsObj).reduce((sum, val) => sum + val, 0);
             if (total === 0) return {};
 
-            const result = {};
+            let validItems = [];
             let otherCount = 0;
 
             for (const [key, val] of Object.entries(countsObj)) {
@@ -396,14 +419,24 @@
                     if (key === '其他') {
                         otherCount += val; // 遇到原本就是「其他」的也一起歸入整合的計數
                     } else {
-                        result[key] = val;
+                        validItems.push({key, val});
                     }
                 }
             }
 
+            // 依據數值由大到小排序
+            validItems.sort((a, b) => b.val - a.val);
+
+            // 「其他」固定置於最後
             if (otherCount > 0) {
-                result['其他'] = (result['其他'] || 0) + otherCount;
+                validItems.push({key: '其他', val: otherCount});
             }
+
+            // 重組為 Object，JavaScript 會保留字串 key 的插入順序
+            const result = {};
+            validItems.forEach(item => {
+                result[item.key] = item.val;
+            });
 
             return result;
         }
@@ -495,11 +528,13 @@
         function renderStatsTables(validData) {
             const companyCounts = aggregateData(validData, 'company');
             const industryCounts = aggregateData(validData, 'industry');
+            const dutyCounts = aggregateData(validData, 'c');
             const positionCounts = aggregateData(validData, 'position');
             const total = validData.length;
 
             buildStatTable('companyStatsTable', companyCounts, total);
             buildStatTable('industryStatsTable', industryCounts, total);
+            buildStatTable('dutyStatsTable', dutyCounts, total);
             buildStatTable('positionStatsTable', positionCounts, total);
         }
 
@@ -550,17 +585,20 @@
             // 原始計數
             const companyCounts = aggregateData(validData, 'company');
             const industryCounts = aggregateData(validData, 'industry');
+            const dutyCounts = aggregateData(validData, 'c');
             const positionCounts = aggregateData(validData, 'position');
             const dateCounts = aggregateData(validData, 'date');
 
-            // 處理低於 2% 的項目，僅用於圓餅圖
+            // 處理低於 2% 的項目，並進行排序
             const companyPieData = processPieDataForUnder2Percent(companyCounts);
             const industryPieData = processPieDataForUnder2Percent(industryCounts);
+            const dutyPieData = processPieDataForUnder2Percent(dutyCounts);
             const positionPieData = processPieDataForUnder2Percent(positionCounts);
 
             drawLineChart('dateChart', dateCounts, 'date');
             drawPieChart('companyChart', companyPieData, 'company');
             drawPieChart('industryChart', industryPieData, 'industry');
+            drawPieChart('dutyChart', dutyPieData, 'duty');
             drawPieChart('positionChart', positionPieData, 'position');
         }
 
