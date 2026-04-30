@@ -158,7 +158,8 @@
                 <i data-lucide="list-ordered" class="w-5 h-5 text-purple-500"></i> 詳細統計數據報表
             </h2>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+            <!-- 上半部：公司與產業統計 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- 公司統計表格 -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden self-start">
                     <div class="bg-blue-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center whitespace-nowrap">公司統計</div>
@@ -192,7 +193,10 @@
                         </table>
                     </div>
                 </div>
+            </div>
 
+            <!-- 下半部：職位與職務統計 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- 職位統計表格 -->
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden self-start">
                     <div class="bg-amber-50/50 p-3 border-b border-slate-200 font-semibold text-slate-800 text-center whitespace-nowrap">職位統計</div>
@@ -227,6 +231,7 @@
                     </div>
                 </div>
             </div>
+
         </div>
 
     </div>
