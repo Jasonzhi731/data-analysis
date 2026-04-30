@@ -67,17 +67,14 @@
                         資料列表
                     </h2>
                     <div class="flex flex-wrap gap-2">
-                        <button onclick="copyInputTable()" class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-1 shadow-sm">
-                            <i data-lucide="copy" class="w-4 h-4"></i> 複製表格
-                        </button>
                         <button onclick="togglePasteArea()" class="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors flex items-center gap-1">
-                            <i data-lucide="clipboard-paste" class="w-4 h-4"></i> 從 Excel 貼上
+                            <i data-lucide="clipboard-paste" class="w-4 h-4"></i> 輸入原始資料
                         </button>
                         <button onclick="addRow()" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors flex items-center gap-1">
                             <i data-lucide="plus" class="w-4 h-4"></i> 新增一列
                         </button>
-                        <button onclick="resetData()" class="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors flex items-center gap-1">
-                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i> 重設範例
+                        <button onclick="copyInputTable()" class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 rounded-lg transition-colors flex items-center gap-1 shadow-sm">
+                            <i data-lucide="copy" class="w-4 h-4"></i> 複製表格
                         </button>
                     </div>
                 </div>
@@ -111,7 +108,7 @@
                 </div>
                 <div id="emptyState" class="hidden p-8 text-center text-slate-400">
                     <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 opacity-50"></i>
-                    <p>目前沒有資料，請新增資料或貼上 Excel 內容。</p>
+                    <p>目前沒有資料，請輸入原始資料。</p>
                 </div>
             </section>
         </div>
@@ -394,13 +391,6 @@
         function deleteRow(index) {
             tableData.splice(index, 1);
             renderTable();
-        }
-
-        function resetData() {
-            if(confirm("確定要放棄目前修改，還原成預設的範例資料嗎？")) {
-                tableData = JSON.parse(JSON.stringify(initialData));
-                renderTable();
-            }
         }
 
         function togglePasteArea() {
@@ -761,6 +751,16 @@
 
         // --- 匯出 Excel 功能 ---
         async function exportToExcel() {
+            // 提示使用者輸入自訂檔案名稱
+            const fileNameInput = prompt("請輸入匯出檔案名稱：", "企業數據視覺化報表");
+            
+            // 若使用者點擊取消或未輸入名稱，則中斷匯出
+            if (fileNameInput === null) return;
+            
+            // 處理副檔名確保匯出檔案格式正確
+            const baseFileName = fileNameInput.trim() === "" ? "企業數據視覺化報表" : fileNameInput.trim();
+            const exportFileName = baseFileName.endsWith(".xlsx") ? baseFileName : baseFileName + ".xlsx";
+
             const btn = document.getElementById('exportBtn');
             const originalBtnContent = btn.innerHTML;
             
@@ -865,9 +865,9 @@
                 addStatBlock('【職位統計】', 'position');
                 addStatBlock('【職務統計】', 'c');
 
-                // 輸出並下載 Excel 檔案
+                // 輸出並下載 Excel 檔案，使用自訂的檔案名稱
                 const buffer = await wb.xlsx.writeBuffer();
-                saveAs(new Blob([buffer]), '企業數據視覺化報表.xlsx');
+                saveAs(new Blob([buffer]), exportFileName);
 
             } catch (error) {
                 console.error('Excel 匯出發生錯誤:', error);
