@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
@@ -130,9 +130,26 @@
 
             <!-- 2. 圓餅圖 (折線圖下方) -->
             <section>
-                <h2 class="text-lg font-semibold flex items-center gap-2 px-1 mb-4 pt-4">
-                    <i data-lucide="pie-chart" class="w-5 h-5 text-indigo-500"></i> 佔比分析 <span class="text-sm font-normal text-slate-400 ml-2">(佔比低於 2% 之項目已自動歸類為「其他」)</span>
-                </h2>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 px-1 mb-4 pt-4">
+                    <h2 class="text-lg font-semibold flex items-center gap-2">
+                        <i data-lucide="pie-chart" class="w-5 h-5 text-indigo-500"></i> 佔比分析 
+                        <span class="text-sm font-normal text-slate-400 ml-2 hidden lg:inline">(佔比低於 2% 之項目已自動歸類為「其他」)</span>
+                    </h2>
+                    
+                    <!-- 日期篩選下拉選單 (支援複選) -->
+                    <div class="relative inline-block text-left" id="dateFilterContainer">
+                        <button id="dateFilterBtn" onclick="toggleDateDropdown()" class="flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 hover:bg-indigo-100 transition-colors">
+                            <i data-lucide="filter" class="w-4 h-4 text-indigo-500"></i>
+                            <span id="dateFilterLabel" class="text-sm font-medium text-indigo-900 whitespace-nowrap">日期: 全部</span>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-indigo-500"></i>
+                        </button>
+                        <div id="dateDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-slate-200 z-[60] max-h-64 overflow-y-auto p-2">
+                            <!-- 選項將由 JavaScript 動態生成 -->
+                        </div>
+                    </div>
+                </div>
+                <p class="text-sm font-normal text-slate-400 mb-4 px-1 lg:hidden">(佔比低於 2% 之項目已自動歸類為「其他」)</p>
+                
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <!-- 公司佔比 -->
                     <div class="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col items-center">
@@ -173,9 +190,12 @@
 
         <!-- 分頁 3：詳細數據 -->
         <div id="tab-stats" class="tab-content hidden space-y-6">
-            <h2 class="text-lg font-semibold flex items-center gap-2 px-1 mb-4">
-                <i data-lucide="list-ordered" class="w-5 h-5 text-purple-500"></i> 詳細統計數據報表
-            </h2>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 px-1 mb-4">
+                <h2 class="text-lg font-semibold flex items-center gap-2">
+                    <i data-lucide="list-ordered" class="w-5 h-5 text-purple-500"></i> 詳細統計數據報表
+                    <span id="statsDateLabel" class="text-sm font-normal text-slate-500 ml-2">(資料日期: 全部)</span>
+                </h2>
+            </div>
             
             <!-- 上半部：公司與產業統計 -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -295,6 +315,10 @@
         let tableData = JSON.parse(JSON.stringify(initialData));
         
         let chartInstances = { company: null, industry: null, position: null, duty: null, date: null };
+        
+        // 支援複選的日期篩選條件
+        let availableDates = [];
+        let selectedDates = [];
 
         const chartColors = [
             '#3b82f6', '#10b981', '#f59e0b', '#ef4444', 
@@ -484,6 +508,146 @@
             return result;
         }
 
+        // 開關日期篩選下拉選單
+        function toggleDateDropdown() {
+            document.getElementById('dateDropdown').classList.toggle('hidden');
+        }
+
+        // 點擊外部自動關閉下拉選單
+        document.addEventListener('click', (e) => {
+            const container = document.getElementById('dateFilterContainer');
+            const dropdown = document.getElementById('dateDropdown');
+            if (container && dropdown && !container.contains(e.target)) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // 更新佔比圖表的下拉選單選項
+        function updateDateFilterOptions(validData) {
+            const uniqueDates = [...new Set(validData.map(row => row.date).filter(d => d.trim() !== ''))]
+                .sort((a, b) => new Date(a) - new Date(b));
+
+            // 初始化或更新選項
+            if (availableDates.length === 0) {
+                selectedDates = [...uniqueDates];
+            } else {
+                const wasAllSelected = selectedDates.length === availableDates.length;
+                selectedDates = selectedDates.filter(d => uniqueDates.includes(d));
+                if (wasAllSelected) {
+                    selectedDates = [...uniqueDates];
+                }
+            }
+            availableDates = uniqueDates;
+
+            renderDateCheckboxes();
+            updateDateFilterLabel();
+        }
+
+        // 渲染複選框
+        function renderDateCheckboxes() {
+            const dropdown = document.getElementById('dateDropdown');
+            if (!dropdown) return;
+            
+            const isAll = selectedDates.length === availableDates.length && availableDates.length > 0;
+            
+            let html = `
+                <label class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer border-b border-slate-100 mb-1 transition-colors">
+                    <input type="checkbox" id="selectAllDates" onchange="toggleAllDates(this.checked)" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300" ${isAll ? 'checked' : ''}>
+                    <span class="text-sm font-bold text-slate-700">全部日期</span>
+                </label>
+            `;
+
+            availableDates.forEach(date => {
+                const isChecked = selectedDates.includes(date);
+                html += `
+                    <label class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 rounded-lg cursor-pointer transition-colors">
+                        <input type="checkbox" value="${date}" onchange="toggleSingleDate(this)" class="date-checkbox w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300" ${isChecked ? 'checked' : ''}>
+                        <span class="text-sm text-slate-700">${date}</span>
+                    </label>
+                `;
+            });
+            
+            dropdown.innerHTML = html;
+        }
+
+        // 全選 / 取消全選
+        function toggleAllDates(checked) {
+            if (checked) {
+                selectedDates = [...availableDates];
+            } else {
+                selectedDates = [];
+            }
+            updateCheckboxesState();
+            triggerFilterUpdate();
+        }
+
+        // 單選一個日期
+        function toggleSingleDate(checkbox) {
+            const val = checkbox.value;
+            if (checkbox.checked) {
+                if (!selectedDates.includes(val)) selectedDates.push(val);
+            } else {
+                selectedDates = selectedDates.filter(d => d !== val);
+            }
+            updateCheckboxesState();
+            triggerFilterUpdate();
+        }
+
+        // 更新複選框畫面狀態
+        function updateCheckboxesState() {
+            const allCheckbox = document.getElementById('selectAllDates');
+            const checkboxes = document.querySelectorAll('.date-checkbox');
+            
+            const isAll = selectedDates.length === availableDates.length && availableDates.length > 0;
+            if(allCheckbox) allCheckbox.checked = isAll;
+            
+            checkboxes.forEach(cb => {
+                cb.checked = selectedDates.includes(cb.value);
+            });
+        }
+
+        // 更新選單按鈕的文字與詳細數據標題的日期提示
+        function updateDateFilterLabel() {
+            const label = document.getElementById('dateFilterLabel');
+            const statsLabel = document.getElementById('statsDateLabel');
+            
+            let labelText = '';
+            if (selectedDates.length === availableDates.length || availableDates.length === 0) {
+                labelText = '全部';
+            } else if (selectedDates.length === 0) {
+                labelText = '未選擇';
+            } else if (selectedDates.length === 1) {
+                labelText = selectedDates[0];
+            } else {
+                labelText = `已選 ${selectedDates.length} 項`;
+            }
+
+            if (label) {
+                label.textContent = `日期: ${labelText}`;
+            }
+            if (statsLabel) {
+                statsLabel.textContent = `(資料日期: ${labelText})`;
+            }
+        }
+
+        // 取得篩選後的資料
+        function getFilteredPieData(validData) {
+            if (selectedDates.length === availableDates.length || availableDates.length === 0) {
+                return validData;
+            }
+            return validData.filter(row => selectedDates.includes(row.date));
+        }
+
+        // 觸發圖表與詳細數據更新
+        function triggerFilterUpdate() {
+            updateDateFilterLabel();
+            const validData = tableData.filter(row => 
+                row.company.trim() !== '' || row.industry.trim() !== '' || row.position.trim() !== '' || row.date.trim() !== ''
+            );
+            updateCharts(validData);
+            renderStatsTables(getFilteredPieData(validData));
+        }
+
         function drawPieChart(chartId, dataObj, chartKey) {
             const ctx = document.getElementById(chartId).getContext('2d');
             const labels = Object.keys(dataObj);
@@ -668,9 +832,15 @@
             const validData = tableData.filter(row => 
                 row.company.trim() !== '' || row.industry.trim() !== '' || row.position.trim() !== '' || row.date.trim() !== ''
             );
+            
+            // 更新下拉選單裡的可用日期
+            updateDateFilterOptions(validData);
 
             updateCharts(validData);
-            renderStatsTables(validData);
+            
+            // 圓餅圖與詳細數據表格使用「篩選後的資料」繪製
+            const filteredPieData = getFilteredPieData(validData);
+            renderStatsTables(filteredPieData);
         }
 
         function updateCharts(validData = null) {
@@ -680,18 +850,23 @@
                 );
             }
 
-            const companyCounts = aggregateData(validData, 'company');
-            const industryCounts = aggregateData(validData, 'industry');
-            const dutyCounts = aggregateData(validData, 'c');
-            const positionCounts = aggregateData(validData, 'position');
+            // 折線圖永遠使用「全部資料」繪製
             const dateCounts = aggregateData(validData, 'date');
+            drawLineChart('dateChart', dateCounts, 'date');
+
+            // 圓餅圖使用「篩選後的資料」繪製
+            const filteredPieData = getFilteredPieData(validData);
+
+            const companyCounts = aggregateData(filteredPieData, 'company');
+            const industryCounts = aggregateData(filteredPieData, 'industry');
+            const dutyCounts = aggregateData(filteredPieData, 'c');
+            const positionCounts = aggregateData(filteredPieData, 'position');
 
             const companyPieData = processPieDataForUnder2Percent(companyCounts);
             const industryPieData = processPieDataForUnder2Percent(industryCounts);
             const dutyPieData = processPieDataForUnder2Percent(dutyCounts);
             const positionPieData = processPieDataForUnder2Percent(positionCounts);
 
-            drawLineChart('dateChart', dateCounts, 'date');
             drawPieChart('companyChart', companyPieData, 'company');
             drawPieChart('industryChart', industryPieData, 'industry');
             drawPieChart('dutyChart', dutyPieData, 'duty');
@@ -841,7 +1016,9 @@
                 ws3.getColumn(3).width = 12;
 
                 const validData = tableData.filter(row => row.company.trim() !== '' || row.industry.trim() !== '' || row.position.trim() !== '' || row.date.trim() !== '');
-                const total = validData.length;
+                // 讓匯出的數據與畫面上目前的篩選狀態同步
+                const filteredData = getFilteredPieData(validData);
+                const total = filteredData.length;
 
                 // 建立統計表格的輔助函式
                 const addStatBlock = (title, key) => {
@@ -855,7 +1032,7 @@
                     if (total === 0) {
                         ws3.addRow(['無資料', '', '']);
                     } else {
-                        const counts = aggregateData(validData, key);
+                        const counts = aggregateData(filteredData, key);
                         const sortedData = Object.entries(counts).sort((a, b) => b[1] - a[1]);
                         
                         sortedData.forEach(([k, v]) => {
